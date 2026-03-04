@@ -7,6 +7,12 @@ import threading
 import sys
 import os
 
+# Add parent directory to path to import setup_binaries
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import setup_binaries
+
+setup_binaries.download_ffmpeg()
+
 # ffmpeg/ffprobe location is managed centrally in the
 # ``ffmpeg_utils`` module.  The application itself doesn't reference it
 # directly, so there's no need to compute this at import time.
