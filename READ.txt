@@ -1,0 +1,17 @@
+Updates (as of 03/02/2026):
+- Auto-Hide side bar switching between the Downloader and Editor
+- Editor auto-populates the title (using file name), the artist, date* and cover art**
+        * - uses MusicBrainz (in order to use this feature, 'pip install musicbrainzngs')
+        ** - only if the file name is 'folder.jpg' and if it is in the album folder with the other files
+- Editor offers keyboard shortcuts for ease of accessing information
+        - Ctrl+A~ Saves all files with the same info*
+              * - it will override any other data in their respective entry 
+        - Ctrl+O~ Saves the single file's data (better option given the recent updates)
+        - Left & Right Arrows~ switches between songs for efficiency
+- The queue has been updated to correctly show progress (the percentage is still a bit rough)
+- Playlist Mode (Downloader)~ will keep on downloading songs from a playlist until the end of the playlist is reached
+- Radio Mode (Downloader)~ will only download the one song that the URL is linked to
+- Upload Settings (Downloader)~ if you need to stop, start, pause, skip, or reset a specific video upload, do so with the given buttons below the Download buttons
+- Queue (Downloader)~ if there are multiple videos to upload, you can proceed to put them in the program, even if they are of different folders
+- Delete (Editor)~ if there is a song that is unwanted in the album, there is a small red icon in the top right corner that deletes it from the album AND DISK
+- Create Executable Command~ python -m PyInstaller --clean --onefile --name "Media Tools v1.2" --noconsole --hidden-import=yt_dlp --add-data "ffmpeg.exe;." --add-data "ffprobe.exe;." app.py
