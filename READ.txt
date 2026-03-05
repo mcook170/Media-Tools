@@ -14,4 +14,4 @@ Updates (as of 03/02/2026):
 - Upload Settings (Downloader)~ if you need to stop, start, pause, skip, or reset a specific video upload, do so with the given buttons below the Download buttons
 - Queue (Downloader)~ if there are multiple videos to upload, you can proceed to put them in the program, even if they are of different folders
 - Delete (Editor)~ if there is a song that is unwanted in the album, there is a small red icon in the top right corner that deletes it from the album AND DISK
-- Create Executable Command~ python -m PyInstaller --clean --onefile --name "Media Tools v1.2" --noconsole --hidden-import=yt_dlp --add-data "ffmpeg.exe;." --add-data "ffprobe.exe;." app.py
+- Create Executable Command~ python -m PyInstaller --clean --onefile --name "Media Tools v1.9" --noconsole --hidden-import=yt_dlp --add-data "ffmpeg.exe;." --add-data "ffprobe.exe;." app.py
