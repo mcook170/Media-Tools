@@ -1,38 +1,8 @@
-system/build/Media Tools v1.6/base_library.zip
-system/build/Media Tools v1.6/Analysis-00.toc
-system/build/Media Tools v1.6/EXE-00.toc
-system/build/Media Tools v1.6/localpycs/pyimod01_archive.pyc
-system/build/Media Tools v1.6/localpycs/pyimod02_importers.pyc
-system/build/Media Tools v1.6/localpycs/pyimod03_ctypes.pyc
-system/build/Media Tools v1.6/localpycs/pyimod04_pywin32.pyc
-system/build/Media Tools v1.6/localpycs/struct.pyc
-system/build/Media Tools v1.6/Media Tools v1.6.pkg
-system/build/Media Tools v1.6/PKG-00.toc
-system/build/Media Tools v1.6/PYZ-00.pyz
-system/build/Media Tools v1.6/PYZ-00.toc
-system/build/Media Tools v1.6/warn-Media Tools v1.6.txt
-system/build/Media Tools v1.6/xref-Media Tools v1.6.html
-system/Media Tools v1.2.spec
-system/Media Tools v1.6.spec
-system/__pycache__/ffmpeg_utils.cpython-311.pyc
-system/pages/__pycache__/metadata_editor_page.cpython-311.pyc
-system/__pycache__/ffmpeg_utils.cpython-311.pyc
-system/pages/__pycache__/youtube_downloader_page.cpython-311.pyc
-ffmpeg.exe
-ffprobe.exe
-__pycache__/setup_binaries.cpython-311.pyc
-build/Media Tools v1.9/Analysis-00.toc
-build/Media Tools v1.9/base_library.zip
-build/Media Tools v1.9/EXE-00.toc
-build/Media Tools v1.9/localpycs/pyimod01_archive.pyc
-build/Media Tools v1.9/localpycs/pyimod02_importers.pyc
-build/Media Tools v1.9/localpycs/pyimod03_ctypes.pyc
-build/Media Tools v1.9/localpycs/pyimod04_pywin32.pyc
-build/Media Tools v1.9/localpycs/struct.pyc
-build/Media Tools v1.9/Media Tools v1.9.pkg
-build/Media Tools v1.9/PKG-00.toc
-build/Media Tools v1.9/PYZ-00.pyz
-build/Media Tools v1.9/PYZ-00.toc
-build/Media Tools v1.9/warn-Media Tools v1.9.txt
-build/Media Tools v1.9/xref-Media Tools v1.9.html
-system/Media Tools v1.9.spec
+third_party/
+dist/
+build/
+*.exe
+__pycache__/
+*.spec
+*.exe
+*.exe

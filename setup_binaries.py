@@ -2,101 +2,72 @@ import os
 import shutil
 import urllib.request
 import zipfile
-import sys
+import tempfile
+from pathlib import Path
 
-def download_ffmpeg():
-    """Download ffmpeg and ffprobe for Windows.
-    
-    Tries multiple reliable sources with fallback options.
+
+DOWNLOAD_SOURCES = [
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip",
+    "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.zip",
+]
+
+
+def download_ffmpeg(target_dir: Path) -> bool:
     """
-    base_dir = os.path.abspath(os.path.dirname(__file__))
-    
-    ffmpeg_path = os.path.join(base_dir, "ffmpeg.exe")
-    ffprobe_path = os.path.join(base_dir, "ffprobe.exe")
-    
-    # Skip if already present
-    if os.path.exists(ffmpeg_path) and os.path.exists(ffprobe_path):
-        print("✓ FFmpeg binaries already present")
+    Downloads ffmpeg.exe and ffprobe.exe into target_dir.
+    Intended for development setup, not runtime use.
+    """
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    ffmpeg_path = target_dir / "ffmpeg.exe"
+    ffprobe_path = target_dir / "ffprobe.exe"
+
+    if ffmpeg_path.exists() and ffprobe_path.exists():
+        print("✓ FFmpeg already present")
         return True
-    
-    # Multiple download sources in order of preference
-    download_sources = [
-        # BtbN/FFmpeg-Builds - Reliable, modern builds
-        "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip",
-        # Fallback: older but stable static build
-        "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.zip",
-    ]
-    
-    print("Downloading ffmpeg and ffprobe...")
-    
-    for idx, url in enumerate(download_sources, 1):
+
+    print("Downloading FFmpeg...")
+
+    for idx, url in enumerate(DOWNLOAD_SOURCES, start=1):
+        print(f"  Attempt {idx}/{len(DOWNLOAD_SOURCES)}")
+
         try:
-            print(f"  Attempting source {idx}/{len(download_sources)}...")
-            zip_path = os.path.join(base_dir, "ffmpeg.zip")
-            
-            # Record existing directories before extraction
-            existing_dirs = set(os.listdir(base_dir))
-            
-            # Download with timeout
-            urllib.request.urlretrieve(url, zip_path)
-            
-            print(f"  Extracting...")
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                zip_ref.extractall(base_dir)
-            
-            # Find and move the binaries
-            found = False
-            extracted_folders = []
-            for root, dirs, files in os.walk(base_dir):
-                if "ffmpeg.exe" in files and "ffprobe.exe" in files:
-                    extracted_ffmpeg = os.path.join(root, "ffmpeg.exe")
-                    extracted_ffprobe = os.path.join(root, "ffprobe.exe")
-                    
-                    shutil.move(extracted_ffmpeg, ffmpeg_path)
-                    shutil.move(extracted_ffprobe, ffprobe_path)
-                    
-                    # Track the top-level extracted folder for cleanup
-                    # Get the first new directory created at base_dir level
-                    rel_path = os.path.relpath(root, base_dir)
-                    top_folder = rel_path.split(os.sep)[0]
-                    if top_folder != ".":
-                        extracted_folders.append(os.path.join(base_dir, top_folder))
-                    
-                    found = True
-                    break
-            
-            if found:
-                # Cleanup: remove only the extracted FFmpeg folders, not all directories
-                for folder in set(extracted_folders):
-                    if os.path.isdir(folder):
-                        shutil.rmtree(folder, ignore_errors=True)
-                
-                os.remove(zip_path)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                tmp_dir = Path(tmp_dir)
+                zip_path = tmp_dir / "ffmpeg.zip"
+
+                # Download
+                urllib.request.urlretrieve(url, zip_path)
+
+                # Extract
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    zip_ref.extractall(tmp_dir)
+
+                # Locate binaries
+                ffmpeg_file = next(tmp_dir.rglob("ffmpeg.exe"), None)
+                ffprobe_file = next(tmp_dir.rglob("ffprobe.exe"), None)
+
+                if not ffmpeg_file or not ffprobe_file:
+                    raise FileNotFoundError("FFmpeg binaries not found in archive")
+
+                # Copy to target directory
+                shutil.copy2(ffmpeg_file, ffmpeg_path)
+                shutil.copy2(ffprobe_file, ffprobe_path)
+
                 print("✓ FFmpeg setup complete")
                 return True
-            else:
-                raise FileNotFoundError("Could not find ffmpeg.exe or ffprobe.exe in download")
-            
+
         except Exception as e:
-            print(f"  ✗ Source {idx} failed: {e}")
-            # Clean up failed attempt
-            try:
-                if os.path.exists(zip_path):
-                    os.remove(zip_path)
-            except:
-                pass
-            continue
-    
-    # All sources failed
-    print("\n✗ Failed to download FFmpeg from all sources")
-    print("\nAlternative options:")
-    print("  1. Install manually from https://ffmpeg.org/download.html")
-    print("  2. Use your package manager:")
-    print("     - Chocolatey: choco install ffmpeg")
-    print("     - Winget: winget install FFmpeg")
-    print("  3. Add to PATH and restart the application")
+            print(f"  ✗ Source failed: {e}")
+
+    print("\n✗ Failed to download FFmpeg from all sources.")
     return False
 
+
 if __name__ == "__main__":
-    success = download_ffmpeg()
-    sys.exit(0 if success else 1)
+    project_root = Path(__file__).parent
+    third_party_dir = project_root / "third_party" / "ffmpeg"
+
+    success = download_ffmpeg(third_party_dir)
+    raise SystemExit(0 if success else 1)
