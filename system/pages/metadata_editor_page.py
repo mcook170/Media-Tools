@@ -387,26 +387,115 @@ class MetadataEditorPage(tk.Frame):
             self.set_status(f"Error loading metadata: {str(e)}", fg="red")
     
     def apply_all_files(self):
-        """Save to all files (or just current if single file mode)"""
+        """Save only genre + cover art to all files"""
+        allowed = {"Genre"}  # Only update genre for all files
+
         if self.folder_files:
-            self._do_save(self.folder_files)
+            self._do_save(self.folder_files, allowed_fields=allowed)
         elif self.current_file:
-            self._do_save([self.current_file])
+            self._do_save([self.current_file], allowed_fields=allowed)
         else:
             self.set_status("No file/folder selected", fg="red")
+
+    # def apply_all_files(self):
+    #     """Save to all files (or just current if single file mode)"""
+    #     if self.folder_files:
+    #         self._do_save(self.folder_files)
+    #     elif self.current_file:
+    #         self._do_save([self.current_file])
+    #     else:
+    #         self.set_status("No file/folder selected", fg="red")
     
     def apply_current_file(self):
-        """Save to current file only"""
+        """Save all fields to current file only"""
+        allowed = {"Artist", "Title", "Album", "Genre", "Date"}
+
         if self.folder_files:
-            self._do_save([self.folder_files[self.current_file_index]])
+            self._do_save([self.folder_files[self.current_file_index]], allowed_fields=allowed)
         elif self.current_file:
-            self._do_save([self.current_file])
+            self._do_save([self.current_file], allowed_fields=allowed)
         else:
             self.set_status("No file/folder selected", fg="red")
+
+    # def apply_current_file(self):
+    #     """Save to current file only"""
+    #     if self.folder_files:
+    #         self._do_save([self.folder_files[self.current_file_index]])
+    #     elif self.current_file:
+    #         self._do_save([self.current_file])
+    #     else:
+    #         self.set_status("No file/folder selected", fg="red")
     
-    def _do_save(self, files_to_update):
+    # def _do_save(self, files_to_update):
+    #     """Internal method that performs the actual save to given files"""
+    #     try:
+    #         # Map fields to ID3 keys
+    #         field_map = {
+    #             "Artist": "artist",
+    #             "Title": "title",
+    #             "Album": "album",
+    #             "Genre": "genre",
+    #             "Date": "date",
+    #         }
+            
+    #         saved_count = 0
+    #         for file_path in files_to_update:
+    #             # Reload audio object for each file
+    #             audio = EasyID3(file_path)
+                
+    #             # Update values
+    #             for field_name, id3_key in field_map.items():
+    #                 value = self.fields[field_name].get().strip()
+    #                 if value:
+    #                     audio[id3_key] = value
+    #             # track number
+    #             if hasattr(self, 'track_entry'):
+    #                 tn = self.track_entry.get().strip()
+    #                 if tn:
+    #                     audio['tracknumber'] = tn
+    #             # Save text tag changes
+    #             audio.save()
+
+    #             # now handle cover art / APIC
+    #             try:
+    #                 id3 = ID3(file_path)
+    #                 if self.remove_cover_art:
+    #                     id3.delall("APIC")
+    #                 elif self.selected_cover_art:
+    #                     with open(self.selected_cover_art, "rb") as img:
+    #                         imgdata = img.read()
+    #                     # clear old art then add new
+    #                     id3.delall("APIC")
+    #                     # choose mime type based on extension
+    #                     mime = "image/jpeg"
+    #                     if self.selected_cover_art.lower().endswith(".png"):
+    #                         mime = "image/png"
+    #                     id3.add(APIC(encoding=3,
+    #                                  mime=mime,
+    #                                  type=3,
+    #                                  desc="Cover",
+    #                                  data=imgdata))
+    #                 id3.save(v2_version=3)
+    #             except Exception:
+    #                 # if something goes wrong with APIC, ignore and continue
+    #                 pass
+
+    #             saved_count += 1
+            
+    #         if saved_count == 1:
+    #             self.set_status(f"Saved metadata to 1 file", fg="green")
+    #         else:
+    #             self.set_status(f"Saved metadata to {saved_count} files", fg="green")
+        
+    #     except Exception as e:
+    #         self.set_status(f"Error saving metadata: {str(e)}", fg="red")
+
+    def _do_save(self, files_to_update, allowed_fields=None):
         """Internal method that performs the actual save to given files"""
         try:
+            if allowed_fields is None:
+                allowed_fields = set()
+
             # Map fields to ID3 keys
             field_map = {
                 "Artist": "artist",
@@ -415,56 +504,66 @@ class MetadataEditorPage(tk.Frame):
                 "Genre": "genre",
                 "Date": "date",
             }
-            
+
             saved_count = 0
+
             for file_path in files_to_update:
-                # Reload audio object for each file
                 audio = EasyID3(file_path)
-                
-                # Update values
+
+                # Update only allowed fields
                 for field_name, id3_key in field_map.items():
+                    if field_name not in allowed_fields:
+                        continue
+
                     value = self.fields[field_name].get().strip()
                     if value:
                         audio[id3_key] = value
-                # track number
-                if hasattr(self, 'track_entry'):
+
+                # Track number only applies when editing a single file
+                if "Title" in allowed_fields and hasattr(self, 'track_entry'):
                     tn = self.track_entry.get().strip()
                     if tn:
                         audio['tracknumber'] = tn
-                # Save text tag changes
+
                 audio.save()
 
-                # now handle cover art / APIC
+                # Handle cover art (always allowed)
                 try:
                     id3 = ID3(file_path)
+
                     if self.remove_cover_art:
                         id3.delall("APIC")
+
                     elif self.selected_cover_art:
                         with open(self.selected_cover_art, "rb") as img:
                             imgdata = img.read()
-                        # clear old art then add new
+
                         id3.delall("APIC")
-                        # choose mime type based on extension
+
                         mime = "image/jpeg"
                         if self.selected_cover_art.lower().endswith(".png"):
                             mime = "image/png"
-                        id3.add(APIC(encoding=3,
-                                     mime=mime,
-                                     type=3,
-                                     desc="Cover",
-                                     data=imgdata))
+
+                        id3.add(APIC(
+                            encoding=3,
+                            mime=mime,
+                            type=3,
+                            desc="Cover",
+                            data=imgdata
+                        ))
+
                     id3.save(v2_version=3)
+
                 except Exception:
-                    # if something goes wrong with APIC, ignore and continue
                     pass
 
                 saved_count += 1
-            
+
             if saved_count == 1:
-                self.set_status(f"Saved metadata to 1 file", fg="green")
+                self.set_status("Saved metadata to 1 file", fg="green")
             else:
                 self.set_status(f"Saved metadata to {saved_count} files", fg="green")
-        
+
         except Exception as e:
             self.set_status(f"Error saving metadata: {str(e)}", fg="red")
 
