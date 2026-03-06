@@ -30,7 +30,7 @@ class App(tk.Tk):
         super().__init__()
 
         # Window and Title Settings
-        self.title("Media Tools v1.9")
+        self.title("Media Tools v2.1")
         self.geometry("800x500")
         self.configure(bg=self.THEME["bg_dark"])
         self.active_page = None
