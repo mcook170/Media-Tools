@@ -10,11 +10,13 @@ class MetadataEditorPage(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent, bg="#1e1e1e")
         
+        self.autofill_from_folder = False
         self.current_file = None
         self.current_folder = None
         self.audio = None
         self.folder_files = []
         self.current_file_index = 0
+
         # track cover art selection and removal flag
         self.selected_cover_art = None
         self.remove_cover_art = False
@@ -164,6 +166,7 @@ class MetadataEditorPage(tk.Frame):
             return
         
         self.current_folder = folder_path
+        self.autofill_from_folder = True
         self.current_file = None
         self.folder_files = sorted([os.path.join(folder_path, f) for f in mp3_files])
         self.current_file_index = 0
@@ -329,8 +332,31 @@ class MetadataEditorPage(tk.Frame):
             self.set_status(f"Loaded: {os.path.basename(file_path)}", fg="green")
 
             # Autopopulate from folder structure
-            file_path = self.folder_files[self.current_file_index] if self.folder_files else self.current_file
+            # Autopopulate ONLY once when folder is first opened
+            if self.autofill_from_folder:
+                file_path = self.folder_files[self.current_file_index] if self.folder_files else self.current_file
 
+                if file_path:
+                    path_parts = file_path.replace("\\", "/").split("/")
+
+                    filename = os.path.splitext(os.path.basename(file_path))[0]
+
+                    # Title
+                    self.fields["Title"].delete(0, tk.END)
+                    self.fields["Title"].insert(0, filename)
+
+                    # Album
+                    if len(path_parts) >= 2:
+                        self.fields["Album"].delete(0, tk.END)
+                        self.fields["Album"].insert(0, path_parts[-2])
+
+                    # Artist
+                    if len(path_parts) >= 3:
+                        self.fields["Artist"].delete(0, tk.END)
+                        self.fields["Artist"].insert(0, path_parts[-3])
+
+                # Turn it off after first run
+                self.autofill_from_folder = False
             if file_path:
                 # Split the path into folders
                 path_parts = file_path.replace("\\", "/").split("/")
@@ -387,15 +413,25 @@ class MetadataEditorPage(tk.Frame):
             self.set_status(f"Error loading metadata: {str(e)}", fg="red")
     
     def apply_all_files(self):
-        """Save only genre + cover art to all files"""
-        allowed = {"Genre"}  # Only update genre for all files
+        """Apply album-level metadata to ALL tracks"""
 
-        if self.folder_files:
-            self._do_save(self.folder_files, allowed_fields=allowed)
-        elif self.current_file:
-            self._do_save([self.current_file], allowed_fields=allowed)
-        else:
-            self.set_status("No file/folder selected", fg="red")
+        if not self.folder_files:
+            self.set_status("Folder mode required for Apply to All", fg="orange")
+            return
+
+        allowed = {"Artist", "Album", "Genre", "Date"}
+        self._do_save(self.folder_files, allowed_fields=allowed)
+
+    # def apply_all_files(self):
+    #     """Save only genre + cover art to all files"""
+    #     allowed = {"Genre"}  # Only update genre for all files
+
+    #     if self.folder_files:
+    #         self._do_save(self.folder_files, allowed_fields=allowed)
+    #     elif self.current_file:
+    #         self._do_save([self.current_file], allowed_fields=allowed)
+    #     else:
+    #         self.set_status("No file/folder selected", fg="red")
 
     # def apply_all_files(self):
     #     """Save to all files (or just current if single file mode)"""
